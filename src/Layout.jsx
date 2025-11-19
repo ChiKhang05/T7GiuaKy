@@ -66,8 +66,10 @@ const Layout = () => {
         <div className="footer-container">
           <div className="footer-column footer-brand">
             <img src={logo} alt="StoreH" className="footer-logo" />
-            <p className="footer-tag">StoreH — Sản phẩm chất lượng cho sinh viên.</p>
-            <p className="copyright">© {new Date().getFullYear()} - StoreH</p>
+            <p className="footer-tag">
+              StoreK — Sản phẩm chất lượng cho sinh viên.
+            </p>
+            <p className="copyright">© {new Date().getFullYear()} - StoreK</p>
           </div>
 
           <div className="footer-column footer-links">
@@ -82,12 +84,23 @@ const Layout = () => {
 
           <div className="footer-column footer-contact">
             <h4>Liên hệ</h4>
-            <p>Email: <a href="mailto:support@storeh.example">support@storeh.example</a></p>
-            <p>Hotline: <a href="tel:0123456789">0123-456-789</a></p>
+            <p>
+              Email:{" "}
+              <a href="mailto:support@storeh.example">support@storeh.example</a>
+            </p>
+            <p>
+              Hotline: <a href="tel:0123456789">0123-456-789</a>
+            </p>
             <div className="socials" aria-hidden>
-              <a href="#" className="social">🔵</a>
-              <a href="#" className="social">📸</a>
-              <a href="#" className="social">🐦</a>
+              <a href="#" className="social">
+                🔵
+              </a>
+              <a href="#" className="social">
+                📸
+              </a>
+              <a href="#" className="social">
+                🐦
+              </a>
             </div>
           </div>
         </div>

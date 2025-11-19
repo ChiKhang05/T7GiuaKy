@@ -291,8 +291,23 @@ body {
   margin: 0 0 8px;
   font-size: 24px;
 }
-.about-simple .lead { color: #475569; margin-bottom: 12px; }
-.about-simple .mb { margin-bottom: 14px; }
-.socials-simple { display:flex; gap:10px; margin-top:6px; }
-.socials-simple a { color: var(--primary); text-decoration: none; font-weight:500; }
-.socials-simple a:hover { text-decoration: underline; }
+.about-simple .lead {
+  color: #475569;
+  margin-bottom: 12px;
+}
+.about-simple .mb {
+  margin-bottom: 14px;
+}
+.socials-simple {
+  display: flex;
+  gap: 10px;
+  margin-top: 6px;
+}
+.socials-simple a {
+  color: var(--primary);
+  text-decoration: none;
+  font-weight: 500;
+}
+.socials-simple a:hover {
+  text-decoration: underline;
+}
