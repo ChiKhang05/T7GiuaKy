@@ -1,6 +1,6 @@
-import { Outlet, useNavigate } from "react-router-dom";
+import { Outlet, useNavigate, Link } from "react-router-dom";
 import { useEffect, useState } from "react";
-import logo from "./assets/images/Ten-truong-do-1000x159.png";
+import logo from "./assets/images/logo.png";
 import "./assets/css/layout.css";
 
 const Layout = () => {
@@ -25,17 +25,17 @@ const Layout = () => {
       {/* --- HEADER --- */}
       <header className="modern-header glass">
         <div className="header-left">
-          <a href="/">
+          <Link to="/">
             <img src={logo} alt="Logo" className="header-logo" />
-          </a>
+          </Link>
         </div>
 
         <nav className="header-nav">
-          <a href="/">Trang chủ</a>
-          <a href="/trang1">Phụ Kiện</a>
-          {user?.role === "admin" && <a href="/admin/products">Quản trị</a>}
-          <a href="/trang2">Trang Sinh Viên</a>
-          <a href="/About">Giới Thiệu</a>
+          <Link to="/">Trang chủ</Link>
+          <Link to="/trang1">Phụ Kiện</Link>
+          {user?.role === "admin" && <Link to="/admin/products">Quản trị</Link>}
+          <Link to="/trang2">Trang Sinh Viên</Link>
+          <Link to="/About">Giới Thiệu</Link>
         </nav>
 
         <div className="header-right">
@@ -47,9 +47,9 @@ const Layout = () => {
               </button>
             </div>
           ) : (
-            <a href="/login" className="login-btn">
+            <Link to="/login" className="login-btn">
               Đăng nhập
-            </a>
+            </Link>
           )}
         </div>
       </header>
@@ -75,10 +75,10 @@ const Layout = () => {
           <div className="footer-column footer-links">
             <h4>Liên kết</h4>
             <nav>
-              <a href="/">Trang chủ</a>
-              <a href="/trang1">Phụ Kiện</a>
-              <a href="/trang2">Trang Sinh Viên</a>
-              <a href="/About">Giới Thiệu</a>
+              <Link to="/">Trang chủ</Link>
+              <Link to="/trang1">Phụ Kiện</Link>
+              <Link to="/trang2">Trang Sinh Viên</Link>
+              <Link to="/About">Giới Thiệu</Link>
             </nav>
           </div>
 
