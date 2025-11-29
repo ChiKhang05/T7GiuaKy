@@ -1,111 +1,133 @@
 // src/Trang1.js
-import React from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { products } from "./data/product";
+import "./Trang1.css";
 
 const Trang1 = () => {
   const navigate = useNavigate();
 
+  // local UI state
+  const [search, setSearch] = useState("");
+  const [justAdded, setJustAdded] = useState(null); // product id recently added
+  const [cartCount, setCartCount] = useState(0);
+
+  // compute cart count from localStorage
+  useEffect(() => {
+    const stored = JSON.parse(localStorage.getItem("cart")) || [];
+    const total = stored.reduce((s, it) => s + (it.quantity || 0), 0);
+    setCartCount(total);
+  }, []);
+
   // Thêm sản phẩm vào giỏ hàng
   const addToCart = (product) => {
     const storedCart = JSON.parse(localStorage.getItem("cart")) || [];
-    const existingProduct = storedCart.find(item => item.id === product.id);
+    const existingProduct = storedCart.find((item) => item.id === product.id);
     if (existingProduct) {
-      // Nếu sản phẩm đã có trong giỏ hàng, tăng số lượng
       existingProduct.quantity += 1;
     } else {
-      // Nếu sản phẩm chưa có, thêm sản phẩm mới vào giỏ hàng
       storedCart.push({ ...product, quantity: 1 });
     }
     localStorage.setItem("cart", JSON.stringify(storedCart));
+    // notify same-tab listeners that cart changed (storage event doesn't fire in same tab)
+    try {
+      window.dispatchEvent(new Event("cartUpdated"));
+    } catch (e) {}
+
+    // show quick feedback and update count
+    const newTotal = storedCart.reduce((s, it) => s + (it.quantity || 0), 0);
+    setCartCount(newTotal);
+    setJustAdded(product.id);
+    window.setTimeout(() => setJustAdded(null), 1400);
+  };
+
+  const visibleProducts = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q) return products;
+    return products.filter(
+      (p) =>
+        p.title.toLowerCase().includes(q) ||
+        p.category.toLowerCase().includes(q)
+    );
+  }, [search]);
+
+  const formatPrice = (v) => {
+    if (Number.isInteger(v)) return `$${v}`;
+    return `$${v.toFixed(2)}`;
   };
 
   return (
-    <div style={{ padding: "20px" }}>
-      <h2>Danh sách sản phẩm</h2>
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))",
-          gap: "20px",
-        }}
-      >
-        {products.map((p) => (
-          <div
-            key={p.id}
-            style={{
-              border: "1px solid #ddd",
-              borderRadius: "10px",
-              padding: "12px",
-              textAlign: "center",
-              display: "flex",
-              flexDirection: "column",
-              justifyContent: "space-between", // Đảm bảo các nút nằm ở dưới cùng
-              height: "380px", // Tăng chiều cao của ô sản phẩm để nhìn rõ hơn
-              boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)", // Thêm bóng mờ cho đẹp
-              backgroundColor: "#fff", // Màu nền trắng để sản phẩm nổi bật
-            }}
-          >
-            <img
-              src={p.image}
-              alt={p.title}
-              style={{
-                height: "160px", // Tăng chiều cao của hình ảnh
-                objectFit: "contain",
-                marginBottom: "12px",
-                borderRadius: "8px", // Làm tròn góc của ảnh
-              }}
-            />
-            <h4 style={{ fontSize: "1.2rem", fontWeight: "600" }}>{p.title}</h4>
-            <p style={{ fontSize: "1rem", color: "#ff7a00", fontWeight: "500" }}>
-              ${p.price}
-            </p>
+    <div className="page-wrap">
+      <header className="page-header">
+        <div className="title-group">
+          <h2>Danh sách sản phẩm</h2>
+          <p className="sub">
+            Những sản phẩm chọn lọc, xem và thêm vào giỏ hàng dễ dàng.
+          </p>
+        </div>
 
-            {/* Nút thêm vào giỏ hàng và xem chi tiết */}
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                gap: "10px",
-                marginTop: "auto", // Đảm bảo các nút nằm ở dưới cùng
-              }}
-            >
-              <button
-                onClick={() => addToCart(p)}
-                style={{
-                  padding: "8px 16px",
-                  background: "#ff7a00",
-                  color: "white",
-                  border: "none",
-                  borderRadius: "20px",
-                  cursor: "pointer",
-                  width: "48%", // Giảm chiều rộng của nút để không bị quá rộng
-                  fontSize: "0.9rem", // Giảm kích thước chữ để hài hòa hơn
-                  transition: "background 0.3s ease",
-                }}
-              >
+        <div className="controls">
+          <div className="search">
+            <input
+              aria-label="Tìm kiếm sản phẩm"
+              placeholder="Tìm tên sản phẩm hoặc danh mục..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
+          <div className="cart-indicator" title="Số lượng sản phẩm trong giỏ">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+              <path d="M7 4h-2l-1 2h2l2.5 8H19v-2H9.6L8.2 6H19V4z" />
+            </svg>
+            <span className="count">{cartCount}</span>
+          </div>
+        </div>
+      </header>
+
+      <main className="product-grid">
+        {visibleProducts.map((p) => (
+          <article
+            key={p.id}
+            className={`card ${justAdded === p.id ? "added" : ""}`}
+          >
+            <div className="thumb">
+              <img src={p.image} alt={p.title} loading="lazy" />
+            </div>
+            <div className="card-body">
+              <div className="top">
+                <h4 className="title" title={p.title}>
+                  {p.title}
+                </h4>
+                <div className="price">{formatPrice(p.price)}</div>
+              </div>
+              <p className="desc">
+                {p.description.length > 96
+                  ? p.description.slice(0, 96) + "..."
+                  : p.description}
+              </p>
+            </div>
+
+            <div className="card-actions">
+              <button className="btn primary" onClick={() => addToCart(p)}>
                 Thêm vào giỏ hàng
               </button>
               <button
+                className="btn secondary"
                 onClick={() => navigate(`/sanpham/${p.id}`)}
-                style={{
-                  padding: "8px 16px",
-                  background: "#1e88e5",
-                  color: "white",
-                  border: "none",
-                  borderRadius: "20px",
-                  cursor: "pointer",
-                  width: "48%", // Giảm chiều rộng của nút để không bị quá rộng
-                  fontSize: "0.9rem", // Giảm kích thước chữ để hài hòa hơn
-                  transition: "background 0.3s ease",
-                }}
               >
                 Xem chi tiết
               </button>
             </div>
-          </div>
+
+            {justAdded === p.id && (
+              <div className="toast">Đã thêm vào giỏ hàng ✓</div>
+            )}
+          </article>
         ))}
-      </div>
+        {visibleProducts.length === 0 && (
+          <div className="empty">Không tìm thấy sản phẩm nào khớp.</div>
+        )}
+      </main>
     </div>
   );
 };

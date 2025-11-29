@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { products } from "./data/product";
+import "./Cart.css";
 
 const Cart = () => {
   const navigate = useNavigate();
@@ -9,150 +10,244 @@ const Cart = () => {
 
   // Lấy giỏ hàng từ localStorage khi trang được tải lại
   useEffect(() => {
-    const storedCart = JSON.parse(localStorage.getItem("cart")) || [];
-    setCart(storedCart);
+    // read stored cart and normalize items (ensure quantity is a number)
+    try {
+      const raw = JSON.parse(localStorage.getItem("cart")) || [];
+      if (!Array.isArray(raw)) {
+        setCart([]);
+        return;
+      }
+      const normalized = raw.map((it) => ({
+        ...it,
+        id:
+          typeof it.id === "string" && !isNaN(Number(it.id))
+            ? Number(it.id)
+            : it.id,
+        quantity: Math.max(1, Number(it.quantity) || 1),
+      }));
+      setCart(normalized);
+    } catch (e) {
+      setCart([]);
+    }
+  }, []);
+
+  // keep cart in sync if localStorage changes in another tab (or another component)
+  useEffect(() => {
+    const onStorage = (e) => {
+      if (e.key !== "cart") return;
+      try {
+        const raw = JSON.parse(e.newValue) || [];
+        if (!Array.isArray(raw)) return;
+        const normalized = raw.map((it) => ({
+          ...it,
+          id:
+            typeof it.id === "string" && !isNaN(Number(it.id))
+              ? Number(it.id)
+              : it.id,
+          quantity: Math.max(1, Number(it.quantity) || 1),
+        }));
+        setCart(normalized);
+      } catch (err) {
+        // ignore
+      }
+    };
+    window.addEventListener("storage", onStorage);
+
+    // also listen for same-tab updates dispatched by other components
+    const onCartUpdated = () => {
+      try {
+        const raw = JSON.parse(localStorage.getItem("cart")) || [];
+        if (!Array.isArray(raw)) return;
+        const normalized = raw.map((it) => ({
+          ...it,
+          id:
+            typeof it.id === "string" && !isNaN(Number(it.id))
+              ? Number(it.id)
+              : it.id,
+          quantity: Math.max(1, Number(it.quantity) || 1),
+        }));
+        setCart(normalized);
+      } catch (err) {}
+    };
+    window.addEventListener("cartUpdated", onCartUpdated);
+
+    return () => {
+      window.removeEventListener("storage", onStorage);
+      window.removeEventListener("cartUpdated", onCartUpdated);
+    };
   }, []);
 
   // Lưu giỏ hàng vào localStorage mỗi khi có sự thay đổi
   useEffect(() => {
-    if (cart.length > 0) {
+    // always persist current cart (empty array allowed)
+    try {
       localStorage.setItem("cart", JSON.stringify(cart));
+    } catch (e) {
+      // ignore storage failures
+      // in real apps, you'd surface a message or fallback
     }
   }, [cart]);
 
-  // Thêm sản phẩm vào giỏ hàng
+  // Thêm sản phẩm vào giỏ hàng (used to quickly re-add from cart or elsewhere)
   const addToCart = (product) => {
-    // Kiểm tra xem sản phẩm đã có trong giỏ hàng chưa
-    const existingProduct = cart.find(item => item.id === product.id);
+    const existingProduct = cart.find((item) => item.id === product.id);
     if (existingProduct) {
-      // Nếu sản phẩm đã có, chỉ tăng số lượng
-      setCart(cart.map(item => 
-        item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
-      ));
+      setCart((prev) =>
+        prev.map((it) =>
+          it.id === product.id ? { ...it, quantity: it.quantity + 1 } : it
+        )
+      );
     } else {
-      // Nếu sản phẩm chưa có, thêm sản phẩm mới vào giỏ hàng
-      setCart([...cart, { ...product, quantity: 1 }]);
+      setCart((prev) => [...prev, { ...product, quantity: 1 }]);
     }
+  };
+
+  // Set quantity explicitly (min 1)
+  const changeQuantity = (productId, qty) => {
+    // ensure integer qty
+    const q = Math.floor(Number(qty) || 0);
+    if (q <= 0) {
+      // remove item if qty goes to 0
+      setCart((prev) => prev.filter((it) => it.id !== productId));
+      return;
+    }
+    setCart((prev) =>
+      prev.map((it) => (it.id === productId ? { ...it, quantity: q } : it))
+    );
   };
 
   // Xóa sản phẩm khỏi giỏ hàng
   const removeFromCart = (productId) => {
-    setCart(cart.filter((item) => item.id !== productId));
+    setCart((prev) => prev.filter((item) => item.id !== productId));
   };
 
   // Tính tổng giá trị giỏ hàng
-  const totalPrice = cart.reduce((total, product) => total + (product.price * product.quantity), 0);
+  const totalPrice = cart.reduce((total, product) => {
+    const qty = Number(product.quantity) || 0;
+    const price = Number(product.price) || 0;
+    return total + price * qty;
+  }, 0);
 
   // Xử lý thanh toán
   const handleCheckout = () => {
     alert("Thanh toán thành công! Cảm ơn bạn đã mua sắm.");
     setCart([]); // Xóa giỏ hàng sau khi thanh toán
-    localStorage.removeItem("cart"); // Xóa giỏ hàng trong localStorage
+    try {
+      localStorage.removeItem("cart");
+    } catch (e) {}
     navigate("/trang1"); // Quay lại trang chính
   };
 
-  return (
-    <div style={{ padding: "40px 20px", fontFamily: "Inter, sans-serif", backgroundColor: "#f9f9f9" }}>
-      <h2 style={{ fontSize: "2.4rem", marginBottom: "30px", fontWeight: "600", textAlign: "center" }}>Giỏ hàng của bạn</h2>
-      
-      {cart.length === 0 ? (
-        <div style={{ textAlign: "center", color: "#777", fontSize: "1.2rem" }}>
-          <p>Giỏ hàng của bạn hiện đang trống. Hãy thêm sản phẩm vào giỏ hàng.</p>
-        </div>
-      ) : (
-        <div>
-          <div>
-            {cart.map((product, index) => (
-              <div
-                key={index}
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  padding: "15px",
-                  borderBottom: "1px solid #ddd",
-                  marginBottom: "15px",
-                  backgroundColor: "#fff",
-                  borderRadius: "10px",
-                  boxShadow: "0 4px 10px rgba(0,0,0,0.1)",
-                  transition: "transform 0.3s ease",
-                }}
-              >
-                <div style={{ display: "flex", gap: "15px", alignItems: "center" }}>
-                  <img
-                    src={product.image}
-                    alt={product.title}
-                    style={{
-                      width: "80px",
-                      height: "80px",
-                      objectFit: "contain",
-                      borderRadius: "8px",
-                    }}
-                  />
-                  <div>
-                    <p style={{ fontSize: "1.2rem", fontWeight: "500", color: "#333" }}>{product.title}</p>
-                    <p style={{ fontSize: "1rem", color: "#888" }}>Số lượng: {product.quantity}</p>
-                    <p style={{ fontSize: "1rem", color: "#888" }}>${(product.price * product.quantity).toFixed(2)}</p>
-                  </div>
-                </div>
-                
-                <button
-                  onClick={() => removeFromCart(product.id)}
-                  style={{
-                    background: "#ff4d4d",
-                    color: "white",
-                    border: "none",
-                    padding: "10px 20px",
-                    borderRadius: "8px",
-                    cursor: "pointer",
-                    transition: "background 0.3s",
-                  }}
-                  onMouseOver={(e) => e.target.style.background = "#e63946"}
-                  onMouseOut={(e) => e.target.style.background = "#ff4d4d"}
-                >
-                  Xóa
-                </button>
-              </div>
-            ))}
-          </div>
+  const formatPrice = (v) => {
+    if (Number.isInteger(v)) return `$${v}`;
+    return `$${v.toFixed(2)}`;
+  };
 
-          {/* Tổng tiền */}
-          <div
-            style={{
-              marginTop: "30px",
-              padding: "20px",
-              background: "#fff",
-              borderRadius: "10px",
-              boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-              textAlign: "center",
-            }}
-          >
-            <h3 style={{ fontSize: "1.6rem", fontWeight: "600", color: "#333" }}>
-              Tổng tiền: ${totalPrice.toFixed(2)}
-            </h3>
-            <button
-              onClick={handleCheckout}
-              style={{
-                padding: "12px 30px",
-                background: "#1e88e5",
-                color: "#fff",
-                border: "none",
-                borderRadius: "30px",
-                fontSize: "1.1rem",
-                fontWeight: "600",
-                cursor: "pointer",
-                boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-                transition: "background 0.3s",
-                marginTop: "20px",
-              }}
-              onMouseOver={(e) => e.target.style.background = "#1565c0"}
-              onMouseOut={(e) => e.target.style.background = "#1e88e5"}
-            >
-              Thanh toán
+  return (
+    <div className="cart-wrap">
+      <div className="cart-inner">
+        <header className="cart-header">
+          <h2>Giỏ hàng của bạn</h2>
+          <div className="header-actions">
+            <button className="btn ghost" onClick={() => navigate("/trang1")}>
+              Tiếp tục mua sắm
             </button>
           </div>
-        </div>
-      )}
+        </header>
+
+        {cart.length === 0 ? (
+          <div className="cart-empty">
+            <p>
+              Giỏ hàng của bạn hiện đang trống. Hãy thêm sản phẩm vào giỏ hàng.
+            </p>
+            <button className="btn primary" onClick={() => navigate("/trang1")}>
+              Mua ngay
+            </button>
+          </div>
+        ) : (
+          <div className="cart-grid">
+            <section className="cart-items">
+              {cart.map((product) => (
+                <div key={product.id} className="cart-item">
+                  <div className="item-left">
+                    <img src={product.image} alt={product.title} />
+                  </div>
+                  <div className="item-mid">
+                    <div className="item-title">{product.title}</div>
+                    <div className="item-meta">{product.category}</div>
+                    <div className="qty-controls">
+                      <button
+                        className="small"
+                        onClick={() =>
+                          changeQuantity(product.id, product.quantity - 1)
+                        }
+                      >
+                        -
+                      </button>
+                      <input
+                        type="number"
+                        min={1}
+                        value={product.quantity}
+                        onChange={(e) =>
+                          changeQuantity(
+                            product.id,
+                            Number(e.target.value || 1)
+                          )
+                        }
+                      />
+                      <button
+                        className="small"
+                        onClick={() =>
+                          changeQuantity(product.id, product.quantity + 1)
+                        }
+                      >
+                        +
+                      </button>
+                    </div>
+                  </div>
+                  <div className="item-right">
+                    <div className="item-price">
+                      {formatPrice(product.price * product.quantity)}
+                    </div>
+                    <div className="item-actions">
+                      <button
+                        className="btn danger"
+                        onClick={() => removeFromCart(product.id)}
+                      >
+                        Xóa
+                      </button>
+                      <button
+                        className="btn"
+                        onClick={() => addToCart(product)}
+                      >
+                        Thêm 1
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </section>
+
+            <aside className="cart-summary">
+              <div className="summary-card">
+                <h3>Đơn hàng</h3>
+                <div className="summary-row">
+                  <span>Tổng tiền</span>
+                  <strong>{formatPrice(totalPrice)}</strong>
+                </div>
+                <div className="summary-row muted">
+                  <small>
+                    Phí vận chuyển và thuế sẽ được tính ở bước thanh toán
+                  </small>
+                </div>
+                <button className="btn checkout" onClick={handleCheckout}>
+                  Thanh toán
+                </button>
+              </div>
+            </aside>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
