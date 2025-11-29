@@ -1,6 +1,5 @@
 import { Outlet, useNavigate, Link } from "react-router-dom";
 import { useEffect, useState } from "react";
-import logo from "./assets/images/logo.png";
 import "./assets/css/layout.css";
 
 const Layout = () => {
@@ -25,8 +24,8 @@ const Layout = () => {
       {/* --- HEADER --- */}
       <header className="modern-header glass">
         <div className="header-left">
-          <Link to="/">
-            <img src={logo} alt="Logo" className="header-logo" />
+          <Link to="/" className="logo-text">
+            <span className="logo-name">Purple Cheeks</span>
           </Link>
         </div>
 
@@ -36,6 +35,7 @@ const Layout = () => {
           {user?.role === "admin" && <Link to="/admin/products">Quản trị</Link>}
           <Link to="/trang2">Trang Sinh Viên</Link>
           <Link to="/About">Giới Thiệu</Link>
+          <Link to="/Cart">Giỏ Hàng</Link>
         </nav>
 
         <div className="header-right">
@@ -65,9 +65,11 @@ const Layout = () => {
       <footer className="modern-footer">
         <div className="footer-container">
           <div className="footer-column footer-brand">
-            <img src={logo} alt="StoreH" className="footer-logo" />
+            <Link to="/" className="logo-text">
+              <span className="logo-name">Purple Cheeks</span>
+            </Link>
             <p className="footer-tag">
-              StoreK — Sản phẩm chất lượng cho sinh viên.
+            Purple Cheeks — Sản phẩm chất lượng cho sinh viên.
             </p>
             <p className="copyright">© {new Date().getFullYear()} - StoreK</p>
           </div>

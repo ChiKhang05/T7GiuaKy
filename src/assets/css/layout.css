@@ -26,6 +26,17 @@ body {
 }
 
 /* ---- HEADER ---- */
+.logo-name {
+  color: black;
+  font-size: 24px;
+  font-weight: bold;
+  text-decoration: none;
+  font-family: 'Montserrat', sans-serif;
+}
+.header-left a {
+  text-decoration: none; /* Loại bỏ gạch chân dưới liên kết logo */
+}
+
 .modern-header {
   position: sticky;
   top: 0;

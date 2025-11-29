@@ -5,7 +5,7 @@ const About = () => {
     <div className="page-container about-simple">
       <h2>Giới thiệu</h2>
       <p className="lead">
-        StoreK cung cấp sản phẩm thiết thực, chất lượng và giá hợp lý dành cho
+        Purple Cheeks cung cấp sản phẩm thiết thực, chất lượng và giá hợp lý dành cho
         sinh viên.
       </p>
 

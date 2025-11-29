@@ -1,3 +1,4 @@
+// @ts-ignore
 import "./styles.css";
 // @ts-ignore
 import Home from "./Home";
@@ -29,6 +30,11 @@ import ProtectedRoute from "./ProtectedRoute";
 //@ts-ignore
 import ListProducts_SP_Admin from "./ListProducts_SP_Admin";
 
+
+// Giỏ hàng
+//@ts-ignore
+import Cart from "./Cart";
+
 const App = () => {
   //return <Layout />;
   return (
@@ -45,6 +51,10 @@ const App = () => {
           <Route path="About" element={<About />} />
           <Route path="login" element={<LoginPage />} />
           <Route path="logout" element={<LogoutPage />} />
+
+          {/* Thêm các route giỏ hàng */}
+          <Route path="cart" element={<Cart />} />  {/* Giỏ hàng */}
+          
           <Route
             path="admin/products"
             element={
