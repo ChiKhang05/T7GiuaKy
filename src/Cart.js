@@ -1,140 +1,30 @@
 // src/Cart.js
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { useNavigate } from "react-router-dom";
-import { products } from "./data/product";
+import { useCart } from "./contexts/CartContext";
 import "./Cart.css";
 
 const Cart = () => {
   const navigate = useNavigate();
-  const [cart, setCart] = useState([]);
+  const {
+    cart,
+    addToCart,
+    changeQuantity,
+    removeFromCart,
+    clearCart,
+    totalPrice,
+  } = useCart();
 
-  // Lấy giỏ hàng từ localStorage khi trang được tải lại
-  useEffect(() => {
-    // read stored cart and normalize items (ensure quantity is a number)
-    try {
-      const raw = JSON.parse(localStorage.getItem("cart")) || [];
-      if (!Array.isArray(raw)) {
-        setCart([]);
-        return;
-      }
-      const normalized = raw.map((it) => ({
-        ...it,
-        id:
-          typeof it.id === "string" && !isNaN(Number(it.id))
-            ? Number(it.id)
-            : it.id,
-        quantity: Math.max(1, Number(it.quantity) || 1),
-      }));
-      setCart(normalized);
-    } catch (e) {
-      setCart([]);
-    }
-  }, []);
+  // `addToCart`, `changeQuantity` and `removeFromCart` come from context; reuse them here
 
-  // keep cart in sync if localStorage changes in another tab (or another component)
-  useEffect(() => {
-    const onStorage = (e) => {
-      if (e.key !== "cart") return;
-      try {
-        const raw = JSON.parse(e.newValue) || [];
-        if (!Array.isArray(raw)) return;
-        const normalized = raw.map((it) => ({
-          ...it,
-          id:
-            typeof it.id === "string" && !isNaN(Number(it.id))
-              ? Number(it.id)
-              : it.id,
-          quantity: Math.max(1, Number(it.quantity) || 1),
-        }));
-        setCart(normalized);
-      } catch (err) {
-        // ignore
-      }
-    };
-    window.addEventListener("storage", onStorage);
+  // Use `changeQuantity` and `removeFromCart` from context
 
-    // also listen for same-tab updates dispatched by other components
-    const onCartUpdated = () => {
-      try {
-        const raw = JSON.parse(localStorage.getItem("cart")) || [];
-        if (!Array.isArray(raw)) return;
-        const normalized = raw.map((it) => ({
-          ...it,
-          id:
-            typeof it.id === "string" && !isNaN(Number(it.id))
-              ? Number(it.id)
-              : it.id,
-          quantity: Math.max(1, Number(it.quantity) || 1),
-        }));
-        setCart(normalized);
-      } catch (err) {}
-    };
-    window.addEventListener("cartUpdated", onCartUpdated);
-
-    return () => {
-      window.removeEventListener("storage", onStorage);
-      window.removeEventListener("cartUpdated", onCartUpdated);
-    };
-  }, []);
-
-  // Lưu giỏ hàng vào localStorage mỗi khi có sự thay đổi
-  useEffect(() => {
-    // always persist current cart (empty array allowed)
-    try {
-      localStorage.setItem("cart", JSON.stringify(cart));
-    } catch (e) {
-      // ignore storage failures
-      // in real apps, you'd surface a message or fallback
-    }
-  }, [cart]);
-
-  // Thêm sản phẩm vào giỏ hàng (used to quickly re-add from cart or elsewhere)
-  const addToCart = (product) => {
-    const existingProduct = cart.find((item) => item.id === product.id);
-    if (existingProduct) {
-      setCart((prev) =>
-        prev.map((it) =>
-          it.id === product.id ? { ...it, quantity: it.quantity + 1 } : it
-        )
-      );
-    } else {
-      setCart((prev) => [...prev, { ...product, quantity: 1 }]);
-    }
-  };
-
-  // Set quantity explicitly (min 1)
-  const changeQuantity = (productId, qty) => {
-    // ensure integer qty
-    const q = Math.floor(Number(qty) || 0);
-    if (q <= 0) {
-      // remove item if qty goes to 0
-      setCart((prev) => prev.filter((it) => it.id !== productId));
-      return;
-    }
-    setCart((prev) =>
-      prev.map((it) => (it.id === productId ? { ...it, quantity: q } : it))
-    );
-  };
-
-  // Xóa sản phẩm khỏi giỏ hàng
-  const removeFromCart = (productId) => {
-    setCart((prev) => prev.filter((item) => item.id !== productId));
-  };
-
-  // Tính tổng giá trị giỏ hàng
-  const totalPrice = cart.reduce((total, product) => {
-    const qty = Number(product.quantity) || 0;
-    const price = Number(product.price) || 0;
-    return total + price * qty;
-  }, 0);
+  // totalPrice is provided by context
 
   // Xử lý thanh toán
   const handleCheckout = () => {
     alert("Thanh toán thành công! Cảm ơn bạn đã mua sắm.");
-    setCart([]); // Xóa giỏ hàng sau khi thanh toán
-    try {
-      localStorage.removeItem("cart");
-    } catch (e) {}
+    clearCart(); // Xóa giỏ hàng sau khi thanh toán
     navigate("/trang1"); // Quay lại trang chính
   };
 

@@ -12,21 +12,70 @@ const Trang1 = () => {
   const [justAdded, setJustAdded] = useState(null); // product id recently added
   const [cartCount, setCartCount] = useState(0);
 
-  // compute cart count from localStorage
+  // compute cart count from localStorage (ensure numeric quantity)
   useEffect(() => {
     const stored = JSON.parse(localStorage.getItem("cart")) || [];
-    const total = stored.reduce((s, it) => s + (it.quantity || 0), 0);
+    const normalized = stored.map((it) => ({
+      ...it,
+      quantity: Math.max(0, Number(it.quantity) || 0),
+    }));
+    const total = normalized.reduce((s, it) => s + it.quantity, 0);
     setCartCount(total);
+  }, []);
+
+  // Listen to cart updates from other components/tabs
+  useEffect(() => {
+    const onStorage = (e) => {
+      if (e.key !== "cart") return;
+      try {
+        const stored = JSON.parse(e.newValue) || [];
+        const total = stored.reduce(
+          (s, it) => s + (Number(it.quantity) || 0),
+          0
+        );
+        setCartCount(total);
+      } catch (err) {}
+    };
+    const onCartUpdated = () => {
+      try {
+        const stored = JSON.parse(localStorage.getItem("cart")) || [];
+        const total = stored.reduce(
+          (s, it) => s + (Number(it.quantity) || 0),
+          0
+        );
+        setCartCount(total);
+      } catch (err) {}
+    };
+    window.addEventListener("storage", onStorage);
+    window.addEventListener("cartUpdated", onCartUpdated);
+    return () => {
+      window.removeEventListener("storage", onStorage);
+      window.removeEventListener("cartUpdated", onCartUpdated);
+    };
   }, []);
 
   // Thêm sản phẩm vào giỏ hàng
   const addToCart = (product) => {
-    const storedCart = JSON.parse(localStorage.getItem("cart")) || [];
-    const existingProduct = storedCart.find((item) => item.id === product.id);
+    const normalizeId = (id) =>
+      typeof id === "string" && !isNaN(Number(id)) ? Number(id) : id;
+
+    const storedCartRaw = JSON.parse(localStorage.getItem("cart")) || [];
+    // normalize existing items' ids and quantities so comparisons are consistent
+    const storedCart = storedCartRaw.map((it) => ({
+      ...it,
+      id: normalizeId(it.id),
+      quantity: Math.max(1, Number(it.quantity) || 1),
+    }));
+
+    const normalizedProduct = { ...product, id: normalizeId(product.id) };
+
+    const existingProduct = storedCart.find(
+      (item) => item.id === normalizedProduct.id
+    );
     if (existingProduct) {
       existingProduct.quantity += 1;
     } else {
-      storedCart.push({ ...product, quantity: 1 });
+      storedCart.push({ ...normalizedProduct, quantity: 1 });
     }
     localStorage.setItem("cart", JSON.stringify(storedCart));
     // notify same-tab listeners that cart changed (storage event doesn't fire in same tab)
@@ -37,7 +86,7 @@ const Trang1 = () => {
     // show quick feedback and update count
     const newTotal = storedCart.reduce((s, it) => s + (it.quantity || 0), 0);
     setCartCount(newTotal);
-    setJustAdded(product.id);
+    setJustAdded(normalizedProduct.id);
     window.setTimeout(() => setJustAdded(null), 1400);
   };
 

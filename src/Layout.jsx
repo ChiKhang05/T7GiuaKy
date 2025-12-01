@@ -1,10 +1,12 @@
 import { Outlet, useNavigate, Link } from "react-router-dom";
 import { useEffect, useState } from "react";
+import { useCart } from "./contexts/CartContext";
 import "./assets/css/layout.css";
 
 const Layout = () => {
   const [user, setUser] = useState(null);
   const navigate = useNavigate();
+  const { cartCount } = useCart();
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
@@ -35,7 +37,12 @@ const Layout = () => {
           {user?.role === "admin" && <Link to="/admin/products">Quản trị</Link>}
           <Link to="/trang2">Trang Sinh Viên</Link>
           <Link to="/About">Giới Thiệu</Link>
-          <Link to="/Cart">Giỏ Hàng</Link>
+          <Link to="/Cart">
+            Giỏ Hàng{" "}
+            {cartCount > 0 && (
+              <span className="header-cart-count">({cartCount})</span>
+            )}
+          </Link>
         </nav>
 
         <div className="header-right">
@@ -69,7 +76,7 @@ const Layout = () => {
               <span className="logo-name">Purple Cheeks</span>
             </Link>
             <p className="footer-tag">
-            Purple Cheeks — Sản phẩm chất lượng cho sinh viên.
+              Purple Cheeks — Sản phẩm chất lượng cho sinh viên.
             </p>
             <p className="copyright">© {new Date().getFullYear()} - StoreK</p>
           </div>

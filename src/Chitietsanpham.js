@@ -1,14 +1,15 @@
 // src/Chitietsanpham.js
-import React, { useState } from "react";
+import React from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { products } from "./data/product";
+import { useCart } from "./contexts/CartContext";
 
 export default function Chitietsanpham() {
   const { id } = useParams();
   const navigate = useNavigate();
   const product = products.find((p) => p.id === Number(id));
 
-  const [cart, setCart] = useState([]);
+  const { addToCart } = useCart();
 
   if (!product) {
     return (
@@ -34,9 +35,9 @@ export default function Chitietsanpham() {
     );
   }
 
-  // Thêm sản phẩm vào giỏ hàng
-  const addToCart = () => {
-    setCart((prevCart) => [...prevCart, product]);
+  // Thêm sản phẩm vào giỏ hàng (use context)
+  const onAddToCart = () => {
+    addToCart(product);
     alert(`${product.title} đã được thêm vào giỏ hàng!`);
   };
 
@@ -128,7 +129,7 @@ export default function Chitietsanpham() {
 
           {/* Add to Cart Button */}
           <button
-            onClick={addToCart}
+            onClick={onAddToCart}
             style={{
               padding: "12px 24px",
               background: "#1e88e5",

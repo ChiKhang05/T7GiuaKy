@@ -14,7 +14,6 @@ const Home = () => {
 
   return (
     <main style={{ fontFamily: "Inter, sans-serif", background: "#f6f7fb" }}>
-
       {/* =============================== HERO + INTRO TEXT =================================*/}
       <section
         style={{
@@ -48,7 +47,7 @@ const Home = () => {
           }}
         >
           <h1 style={{ fontSize: "3.2rem", marginBottom: 10, fontWeight: 700 }}>
-            Chào mừng đến với E-Shop
+            Chào mừng đến với Purple Cheeks
           </h1>
           <p style={{ fontSize: "1.1rem", opacity: 0.9 }}>
             Hàng ngàn sản phẩm, giá tốt mỗi ngày, giao siêu tốc 2 giờ.
@@ -128,7 +127,9 @@ const Home = () => {
                 cursor: "pointer",
                 transition: "0.3s",
               }}
-              onMouseOver={(e) => (e.currentTarget.style.transform = "scale(1.07)")}
+              onMouseOver={(e) =>
+                (e.currentTarget.style.transform = "scale(1.07)")
+              }
               onMouseOut={(e) => (e.currentTarget.style.transform = "scale(1)")}
             >
               <div style={{ fontSize: 40 }}>{cat.icon}</div>

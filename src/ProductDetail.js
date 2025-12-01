@@ -1,19 +1,23 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "./supabaseClient";
+import { useCart } from "./contexts/CartContext";
 
 const ProductDetail = () => {
   const { id } = useParams();
   const [product, setProduct] = useState(null);
   const navigate = useNavigate();
+  const { addToCart } = useCart();
 
   useEffect(() => {
     const fetchProduct = async () => {
       try {
+        const numericId =
+          typeof id === "string" && !isNaN(Number(id)) ? Number(id) : id;
         const { data, error } = await supabase
           .from("product1")
           .select("*")
-          .eq("id", id)
+          .eq("id", numericId)
           .single();
 
         if (error) throw error;
@@ -127,7 +131,10 @@ const ProductDetail = () => {
               borderRadius: "6px",
               cursor: "pointer",
             }}
-            onClick={() => alert("Đã thêm vào giỏ hàng!")}
+            onClick={() => {
+              addToCart(product);
+              alert("Đã thêm vào giỏ hàng!");
+            }}
           >
             🛒 Thêm vào giỏ hàng
           </button>
