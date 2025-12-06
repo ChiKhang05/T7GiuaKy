@@ -9,7 +9,7 @@ import Trang1 from "./Trang1";
 // @ts-ignore
 import Chitietsanpham from "./Chitietsanpham";
 // @ts-ignore
-import Trang2 from "./Trang2";
+import Trang2 from "./Contact";
 // @ts-ignore
 import ListProducts from "./ListProducts";
 // @ts-ignore

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "./supabaseClient"; // Nhớ import supabase client
 
 const ListSanPham = () => {
   const [listproduct, setListProduct] = useState([]);
@@ -8,14 +8,15 @@ const ListSanPham = () => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const LayDulieutuBackend = async () => {
+    const LayDulieutuSupabase = async () => {
       try {
-        const res = await axios.get(
-          "https://68f99b37ef8b2e621e7cd33c.mockapi.io/test"
-        );
+        // Lấy dữ liệu từ bảng 'product' trong Supabase
+        const { data, error } = await supabase.from("product").select("*");
 
-        if (Array.isArray(res.data) && res.data.length > 0) {
-          setListProduct(res.data);
+        if (error) throw error;
+
+        if (data && data.length > 0) {
+          setListProduct(data);
         } else {
           setError("Không có dữ liệu sản phẩm!");
         }
@@ -27,7 +28,7 @@ const ListSanPham = () => {
       }
     };
 
-    LayDulieutuBackend();
+    LayDulieutuSupabase();
   }, []);
 
   const navigate = useNavigate();

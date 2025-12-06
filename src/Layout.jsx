@@ -35,7 +35,7 @@ const Layout = () => {
           <Link to="/">Trang chủ</Link>
           <Link to="/trang1">Phụ Kiện</Link>
           {user?.role === "admin" && <Link to="/admin/products">Quản trị</Link>}
-          <Link to="/trang2">Trang Sinh Viên</Link>
+          <Link to="/trang2">Liên Hệ</Link>
           <Link to="/About">Giới Thiệu</Link>
           <Link to="/Cart">
             Giỏ Hàng{" "}
